@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Econ & Stat Exam Master | 觀課數位戰情室</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Vue 3 CDN (Composition API) -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+
+  <!-- KaTeX CDN (數學公式極速排版渲染) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+
+  <!-- Firebase SDK (Compat 支援單檔直行) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <!-- 自訂 Tailwind 配置 -->
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            warroom: {
+              950: '#070b14',
+              900: '#0d1527',
+              850: '#131e36',
+              800: '#1b294b',
+              700: '#2d3f6d',
+              accent: '#38bdf8'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    [v-cloak] { display: none !important; }
+    
+    /* 觸控反饋優化與防誤縮放 */
+    body {
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    /* 滾動條美化 */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #070b14;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 3px;
+    }
+
+    /* 盲默寫主動回憶遮罩特效 */
+    .blur-mask {
+      filter: blur(9px);
+      user-select: none;
+      pointer-events: none;
+      transition: filter 0.25s ease;
+    }
+
+    /* KaTeX 數學式字體修整與滾動適配 */
+    .katex-display {
+      margin: 0.5em 0 !important;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 4px 0;
+      -webkit-overflow-scrolling: touch;
+    }
+    .katex {
+      font-size: 1.05em;
+    }
+
+    /* 手機底部安全距離 */
+    .safe-bottom {
+      padding-bottom: env(safe-area-inset-bottom, 16px);
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen antialiased selection:bg-cyan-500 selection:text-white font-sans">
+
+<div id="app" v-cloak class="min-h-screen flex flex-col justify-between">
+
+  <!-- ==================== 頂部跨裝置導航欄 ==================== -->
+  <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 shadow-xl">
+    <div class="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between">
+      
+      <!-- 標題與科目副標 -->
+      <div class="flex items-center space-x-2.5">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-cyan-600 to-indigo-600 flex items-center justify-center shadow-md shadow-cyan-500/20 text-white font-black text-base">
+          ∑
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <h1 class="text-sm font-black tracking-wider text-slate-50 flex items-center gap-1">
+              <span>Econ & Stat Exam Master</span>
+            </h1>
+            <span class="text-[9px] px-1.5 py-0.5 rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800 font-mono">戰情室</span>
+          </div>
+          <p class="text-[10px] text-slate-400 truncate max-w-[200px] sm:max-w-none">跨裝置同步・板書秒轉 LaTeX・盲默寫卡片庫</p>
+        </div>
+      </div>
+
+      <!-- 右側：雲端連線狀態 + 設定按鈕 -->
+      <div class="flex items-center gap-2">
+        <!-- 雲端同步指示燈 -->
+        <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-950 border border-slate-800 text-[10px] font-mono">
+          <span class="w-2 h-2 rounded-full" :class="isCloudConnected ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'"></span>
+          <span :class="isCloudConnected ? 'text-emerald-300' : 'text-slate-400'">{{ isCloudConnected ? '雲端同步' : '本機模式' }}</span>
+        </div>
+
+        <!-- 系統設定按鈕 -->
+        <button 
+          @click="showSettingsModal = true"
+          class="p-2 rounded-xl bg-slate-800 active:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition"
+          title="系統設定 / API Key">
+          ⚙️
+        </button>
+      </div>
+
+    </div>
+
+    <!-- 平板與手機快捷燈號統計條 -->
+    <div class="bg-slate-950/90 border-t border-slate-800/60 px-4 py-1.5 flex items-center justify-between text-[11px]">
+      <div class="flex items-center gap-2 overflow-x-auto no-scrollbar font-mono">
+        <span class="text-slate-400">總推導: <strong class="text-white">{{ notes.length }}</strong> 則</span>
+        <span class="text-slate-700">|</span>
+        <button @click="quickFilterStatus('green')" class="flex items-center gap-1 text-emerald-400 hover:underline">
+          🟢 <span>{{ countByStatus('green') }}</span>
+        </button>
+        <button @click="quickFilterStatus('amber')" class="flex items-center gap-1 text-amber-400 hover:underline">
+          🟡 <span>{{ countByStatus('amber') }}</span>
+        </button>
+        <button @click="quickFilterStatus('red')" class="flex items-center gap-1 text-rose-400 hover:underline">
+          🔴 <span>{{ countByStatus('red') }}</span>
+        </button>
+      </div>
+
+      <!-- 快捷載入示範資料 -->
+      <button 
+        @click="insertDemoData" 
+        class="text-[10px] text-cyan-400 hover:text-cyan-300 underline font-medium">
+        + 範例推導
+      </button>
+    </div>
+  </header>
+
+  <!-- ==================== 主要工作區 (手機單欄 / 平板與電腦雙欄) ==================== -->
+  <main class="flex-1 max-w-7xl mx-auto w-full px-3 sm:px-4 py-4 grid grid-cols-1 lg:grid-cols-12 gap-5 mb-16 lg:mb-4">
+
+    <!-- 左側面板：截圖捕獲、打點參數與 AI 解析 (手機上可切換或依序呈現) -->
+    <div class="lg:col-span-5 space-y-4" :class="{ 'hidden lg:block': activeTab === 'notes' }">
+
+      <!-- 截圖上傳卡片 (專為手機觸控與平板最佳化) -->
+      <div 
+        @dragover.prevent="isDragging = true"
+        @dragleave.prevent="isDragging = false"
+        @drop.prevent="handleDrop"
+        class="bg-slate-900 border-2 border-dashed rounded-3xl p-4 sm:p-5 text-center transition-all duration-200 relative overflow-hidden"
+        :class="isDragging ? 'border-cyan-400 bg-cyan-950/20' : 'border-slate-800 hover:border-slate-700'">
+
+        <div v-if="!currentImageBase64" class="py-4 space-y-3">
+          <div class="w-12 h-12 mx-auto rounded-2xl bg-slate-800/80 border border-slate-700 flex items-center justify-center text-2xl shadow-inner">
+            📸
+          </div>
+          <div class="space-y-1">
+            <h3 class="text-xs sm:text-sm font-bold text-slate-200">
+              板書截圖入庫
+            </h3>
+            <p class="text-[11px] text-slate-400 leading-relaxed max-w-xs mx-auto">
+              手機/平板支援拍照或相簿；電腦可直接 <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-cyan-400 font-mono text-[10px]">Ctrl + V</kbd> 貼上。
+            </p>
+          </div>
+
+          <!-- 行動端四大觸控操作按鈕 (拍照、相簿選圖、貼上剪貼簿) -->
+          <div class="grid grid-cols-2 gap-2 max-w-xs mx-auto pt-1">
+            <!-- 拍照 (直接喚醒手機相機) -->
+            <label class="cursor-pointer text-xs font-bold py-2.5 px-2 rounded-xl bg-cyan-950/80 hover:bg-cyan-900 text-cyan-300 border border-cyan-800/80 flex items-center justify-center gap-1.5 active:scale-95 transition">
+              <span>📷 拍照</span>
+              <input type="file" accept="image/*" capture="environment" class="hidden" @change="handleFileInput">
+            </label>
+
+            <!-- 選擇截圖/相簿 -->
+            <label class="cursor-pointer text-xs font-bold py-2.5 px-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center justify-center gap-1.5 active:scale-95 transition">
+              <span>🖼️ 選擇截圖</span>
+              <input type="file" accept="image/*" class="hidden" @change="handleFileInput">
+            </label>
+
+            <!-- 行動端一鍵讀取剪貼簿 (避免手機難按 Ctrl+V) -->
+            <button 
+              type="button" 
+              @click="pasteFromMobileClipboard"
+              class="col-span-2 text-xs font-bold py-2 px-3 rounded-xl bg-slate-800/60 hover:bg-slate-800 text-slate-300 border border-slate-700/80 flex items-center justify-center gap-1.5 active:scale-95 transition">
+              <span>📋 貼上剪貼簿圖片</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 截圖已捕獲預覽區 -->
+        <div v-else class="space-y-3 text-left">
+          <div class="flex items-center justify-between pb-1 border-b border-slate-800 text-xs">
+            <span class="font-bold text-cyan-400 flex items-center gap-1">
+              <span>📸</span> 板書截圖已就緒
+            </span>
+            <button @click="clearCurrentImage" class="text-rose-400 hover:underline text-xs">
+              ✕ 重新選取
+            </button>
+          </div>
+
+          <div class="relative max-h-48 rounded-xl overflow-hidden bg-black/60 border border-slate-800 flex items-center justify-center">
+            <img :src="currentImageBase64" class="max-h-48 w-full object-contain" alt="板書截圖">
+          </div>
+        </div>
+      </div>
+
+      <!-- 觀課打點設定表單 -->
+      <div class="bg-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-5 shadow-lg space-y-3.5">
+        <div class="flex items-center justify-between border-b border-slate-800/80 pb-2.5">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+            <span>🎯</span> 堂數打點與卡關警示
+          </h2>
+          
+          <!-- 狀態警示燈選擇 -->
+          <div class="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800">
+            <button 
+              type="button"
+              @click="entryForm.status = 'green'"
+              :class="entryForm.status === 'green' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-sm' : 'text-slate-500'"
+              class="px-2 py-0.5 rounded-lg text-[11px] font-bold border border-transparent transition">
+              🟢 懂了
+            </button>
+            <button 
+              type="button"
+              @click="entryForm.status = 'amber'"
+              :class="entryForm.status === 'amber' ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-sm' : 'text-slate-500'"
+              class="px-2 py-0.5 rounded-lg text-[11px] font-bold border border-transparent transition">
+              🟡 需推導
+            </button>
+            <button 
+              type="button"
+              @click="entryForm.status = 'red'"
+              :class="entryForm.status === 'red' ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 shadow-sm' : 'text-slate-500'"
+              class="px-2 py-0.5 rounded-lg text-[11px] font-bold border border-transparent transition">
+              🔴 卡關
+            </button>
+          </div>
+        </div>
+
+        <!-- 備考科目點選 (四大科) -->
+        <div class="space-y-1">
+          <label class="text-[11px] font-bold text-slate-400">備考科目</label>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+            <button 
+              v-for="sub in subjects" 
+              :key="sub.id"
+              type="button"
+              @click="entryForm.subject = sub.id"
+              :class="entryForm.subject === sub.id ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300 font-bold shadow-sm' : 'bg-slate-950 border-slate-800 text-slate-400'"
+              class="px-2 py-2 rounded-xl text-xs border transition text-center truncate active:scale-95">
+              {{ sub.name }}
+            </button>
+          </div>
+        </div>
+
+        <!-- 堂數與時間戳 -->
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label class="text-[10px] font-bold text-slate-400 block mb-0.5">課程堂數</label>
+            <input 
+              v-model="entryForm.lecture" 
+              type="text" 
+              placeholder="例: L14 或 總經第7堂" 
+              class="w-full px-3 py-2 bg-slate-950 border border-slate-800 focus:border-cyan-500 rounded-xl text-xs text-slate-100 placeholder-slate-600 focus:outline-none transition font-mono">
+          </div>
+          <div>
+            <label class="text-[10px] font-bold text-slate-400 block mb-0.5">時間戳點位</label>
+            <input 
+              v-model="entryForm.timestamp" 
+              type="text" 
+              placeholder="例: 01:24:35" 
+              class="w-full px-3 py-2 bg-slate-950 border border-slate-800 focus:border-cyan-500 rounded-xl text-xs text-slate-100 placeholder-slate-600 focus:outline-none transition font-mono">
+          </div>
+        </div>
+
+        <!-- 觀念名稱 / 核心關鍵字 -->
+        <div>
+          <label class="text-[10px] font-bold text-slate-400 block mb-0.5">章節主題 / 定理關鍵字 (可留空由 AI 生成)</label>
+          <input 
+            v-model="entryForm.title" 
+            type="text" 
+            placeholder="例: Slutsky 方程式分解 / OLS Gauss-Markov" 
+            class="w-full px-3 py-2 bg-slate-950 border border-slate-800 focus:border-cyan-500 rounded-xl text-xs text-slate-100 placeholder-slate-600 focus:outline-none transition">
+        </div>
+
+        <!-- 送出按鈕 -->
+        <div class="pt-1">
+          <button 
+            @click="triggerAiAnalysis"
+            :disabled="isAnalyzing || !currentImageBase64"
+            class="w-full py-3 rounded-2xl bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 active:scale-[0.99] text-white font-bold text-xs shadow-lg shadow-cyan-900/30 flex items-center justify-center gap-2 transition disabled:opacity-40 disabled:cursor-not-allowed">
+            <span v-if="isAnalyzing" class="animate-spin text-sm">🔄</span>
+            <span v-else>✨</span>
+            <span>{{ isAnalyzing ? 'AI 正在萃取 FOC 與推導...' : 'AI 視覺辨識 ➔ 提取 LaTeX 推導建檔' }}</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 右側面板：戰情卡片清單、篩選器與盲默寫檢索區 -->
+    <div class="lg:col-span-7 space-y-4" :class="{ 'hidden lg:block': activeTab === 'capture' }">
+
+      <!-- 頂部篩選器工具列 -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3 shadow-sm space-y-2.5">
+        <div class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center justify-between">
+          
+          <!-- 關鍵字搜尋 -->
+          <div class="relative flex-1">
+            <input 
+              v-model="searchQuery" 
+              type="text" 
+              placeholder="搜尋堂數、關鍵字、模型或 LaTeX 公式..." 
+              class="w-full pl-8 pr-3 py-2 bg-slate-950 border border-slate-800 focus:border-cyan-500 rounded-xl text-xs text-slate-200 placeholder-slate-600 focus:outline-none transition">
+            <span class="absolute left-2.5 top-2 text-slate-500 text-xs">🔍</span>
+          </div>
+
+          <div class="flex gap-2">
+            <!-- 科目下拉篩選 -->
+            <select 
+              v-model="filterSubject"
+              class="flex-1 sm:flex-initial bg-slate-950 border border-slate-800 text-slate-300 text-xs rounded-xl px-2.5 py-2 focus:outline-none focus:border-cyan-500 font-medium">
+              <option value="ALL">全部科目</option>
+              <option v-for="sub in subjects" :key="sub.id" :value="sub.id">{{ sub.name }}</option>
+            </select>
+
+            <!-- 卡關燈號篩選 -->
+            <select 
+              v-model="filterStatus"
+              class="flex-1 sm:flex-initial bg-slate-950 border border-slate-800 text-slate-300 text-xs rounded-xl px-2.5 py-2 focus:outline-none focus:border-cyan-500 font-medium">
+              <option value="ALL">全部掌握度</option>
+              <option value="red">🔴 卡關優先衝刺</option>
+              <option value="amber">🟡 需親手推導</option>
+              <option value="green">🟢 已完全搞懂</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between text-[11px] text-slate-400 border-t border-slate-800/80 pt-2 px-1">
+          <span>共 <strong class="text-cyan-400 font-mono">{{ filteredNotes.length }}</strong> 則核心推導板書</span>
+          <span class="text-slate-500">點擊「🙈 盲默寫」可隱藏中間推導</span>
+        </div>
+      </div>
+
+      <!-- 卡片清單渲染區 -->
+      <div class="space-y-4">
+        
+        <div 
+          v-for="note in filteredNotes" 
+          :key="note.id" 
+          class="bg-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-5 shadow-lg space-y-3.5 hover:border-slate-700 transition relative overflow-hidden">
+
+          <!-- 頂部資訊帶：科目、堂數、時間戳、掌握度、操作按鈕 -->
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
+            <div class="flex flex-wrap items-center gap-1.5">
+              <!-- 科目標籤 -->
+              <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold tracking-wide uppercase border font-mono"
+                    :class="getSubjectBadgeClass(note.subject)">
+                {{ getSubjectName(note.subject) }}
+              </span>
+
+              <!-- 堂數與時間戳 -->
+              <span v-if="note.lecture" class="text-[11px] font-mono font-bold text-slate-300 bg-slate-950 px-2 py-0.5 rounded-lg border border-slate-800">
+                {{ note.lecture }}
+              </span>
+              <span v-if="note.timestamp" class="text-[11px] font-mono text-cyan-400 bg-cyan-950/40 px-2 py-0.5 rounded-lg border border-cyan-800/50 flex items-center gap-1">
+                <span>⏱️</span>{{ note.timestamp }}
+              </span>
+            </div>
+
+            <!-- 右側：狀態切換與刪除 -->
+            <div class="flex items-center gap-2">
+              <button 
+                @click="cycleNoteStatus(note)"
+                class="px-2.5 py-0.5 rounded-full text-[11px] font-bold border transition flex items-center gap-1 active:scale-95"
+                :class="getStatusBadgeClass(note.status)">
+                <span>{{ getStatusIcon(note.status) }}</span>
+                <span>{{ getStatusText(note.status) }}</span>
+              </button>
+
+              <button 
+                @click="deleteNote(note.id)" 
+                class="text-slate-500 hover:text-rose-400 p-1 text-xs transition"
+                title="刪除此筆記">
+                🗑️
+              </button>
+            </div>
+          </div>
+
+          <!-- 筆記標題 -->
+          <div>
+            <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+              <span>{{ note.title || '未命名觀念' }}</span>
+            </h3>
+          </div>
+
+          <!-- 模型假設與設定 (Assumptions) -->
+          <div v-if="note.assumptions" class="bg-slate-950/60 p-3 rounded-2xl border border-slate-800/80 text-xs space-y-1">
+            <span class="text-[10px] uppercase font-bold text-indigo-400 block tracking-wider">📌 模型設定與前置假設</span>
+            <div class="text-slate-300 leading-relaxed overflow-x-auto" v-html="renderMath(note.assumptions)"></div>
+          </div>
+
+          <!-- 核心推導步驟 (Derivations) + 盲默寫遮蔽功能 -->
+          <div class="relative bg-slate-950 p-3.5 sm:p-4 rounded-2xl border border-slate-800/80 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] uppercase font-bold text-cyan-400 block tracking-wider">
+                🔬 一階條件 (FOC) 與數學推導步驟
+              </span>
+              <!-- 主動回憶 (Active Recall) 遮蔽開關 -->
+              <button 
+                @click="note.isMasked = !note.isMasked"
+                class="px-2.5 py-1 rounded-xl text-[10px] font-bold border transition flex items-center gap-1 active:scale-95"
+                :class="note.isMasked ? 'bg-amber-950/70 text-amber-300 border-amber-700/60' : 'bg-slate-800 text-slate-300 border-slate-700'">
+                <span>{{ note.isMasked ? '👀 翻牌核對' : '🙈 盲默寫遮蔽' }}</span>
+              </button>
+            </div>
+
+            <!-- 推導內容 (可被模糊遮罩) -->
+            <div class="relative min-h-[3.5rem]">
+              <div 
+                :class="{ 'blur-mask select-none': note.isMasked }"
+                class="text-xs text-slate-200 overflow-x-auto leading-relaxed"
+                v-html="renderMath(note.derivations || '無詳細步驟')">
+              </div>
+
+              <!-- 遮罩覆蓋提示 -->
+              <div 
+                v-if="note.isMasked"
+                @click="note.isMasked = false"
+                class="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/60 rounded-xl cursor-pointer hover:bg-slate-950/40 transition p-2 text-center">
+                <span class="text-xl mb-1">✍️</span>
+                <span class="text-[11px] font-bold text-amber-300 bg-amber-950/90 px-3 py-1 rounded-full border border-amber-600/50 shadow-md">
+                  推導已遮蔽！請於計算紙或 iPad 默寫後，點此翻牌核對
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 最終結論與考點意涵 (Conclusion) -->
+          <div v-if="note.conclusion" class="bg-emerald-950/20 p-3 rounded-2xl border border-emerald-800/40 text-xs space-y-1">
+            <span class="text-[10px] uppercase font-bold text-emerald-400 block tracking-wider">💡 最終結論與考題意涵</span>
+            <div class="text-slate-300 leading-relaxed font-medium overflow-x-auto" v-html="renderMath(note.conclusion)"></div>
+          </div>
+
+          <!-- 原圖縮圖折疊按鈕 -->
+          <div v-if="note.imageUrl" class="pt-0.5">
+            <button 
+              @click="note.showImage = !note.showImage" 
+              class="text-[11px] text-slate-500 hover:text-slate-300 flex items-center gap-1 transition">
+              <span>🖼️</span>
+              <span>{{ note.showImage ? '收合原始板書截圖' : '查看原始板書截圖' }}</span>
+            </button>
+            <div v-if="note.showImage" class="mt-2 rounded-xl overflow-hidden border border-slate-800 max-h-60 bg-black flex items-center justify-center">
+              <img :src="note.imageUrl" class="w-full object-contain max-h-60" alt="板書原始截圖">
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 空狀態畫面 -->
+        <div v-if="filteredNotes.length === 0" class="text-center py-16 bg-slate-900/50 rounded-3xl border border-slate-800/60 p-6 space-y-3">
+          <div class="text-3xl sm:text-4xl">📚</div>
+          <h4 class="text-sm font-bold text-slate-300">目前尚無符合條件的板書筆記</h4>
+          <p class="text-xs text-slate-500 max-w-sm mx-auto">
+            在手機上可點選拍照或相簿；在電腦上直接按 Ctrl+V，讓 AI 快速為你建立 LaTeX 數學推導庫！
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ==================== 手機/直式平板專屬底部常駐導航列 ==================== -->
+  <footer class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 safe-bottom">
+    <div class="grid grid-cols-3 py-1.5 px-2 text-center">
+      <button 
+        @click="activeTab = 'capture'" 
+        :class="activeTab === 'capture' ? 'text-cyan-400 font-bold' : 'text-slate-400'"
+        class="flex flex-col items-center justify-center py-1 text-xs">
+        <span class="text-base">📸</span>
+        <span class="text-[10px] mt-0.5">截圖打點</span>
+      </button>
+
+      <button 
+        @click="activeTab = 'notes'" 
+        :class="activeTab === 'notes' ? 'text-cyan-400 font-bold' : 'text-slate-400'"
+        class="flex flex-col items-center justify-center py-1 text-xs">
+        <span class="text-base">📚</span>
+        <span class="text-[10px] mt-0.5">推導卡片庫 ({{ filteredNotes.length }})</span>
+      </button>
+
+      <button 
+        @click="showSettingsModal = true" 
+        class="flex flex-col items-center justify-center py-1 text-xs text-slate-400 hover:text-white">
+        <span class="text-base">⚙️</span>
+        <span class="text-[10px] mt-0.5">系統設定</span>
+      </button>
+    </div>
+  </footer>
+
+  <!-- ==================== 系統設定與 API Key Modal ==================== -->
+  <div v-if="showSettingsModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md p-5 sm:p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      
+      <div class="flex justify-between items-center border-b border-slate-800 pb-2.5">
+        <h3 class="font-bold text-sm text-slate-100 flex items-center gap-2">
+          <span>⚙️</span> 戰情室系統設定
+        </h3>
+        <button @click="showSettingsModal = false" class="text-slate-400 hover:text-white text-sm p-1">✕</button>
+      </div>
+
+      <!-- Gemini API Key 輸入 -->
+      <div class="space-y-1.5">
+        <label class="text-xs font-bold text-slate-300 block">
+          Gemini API Key
+        </label>
+        <p class="text-[11px] text-slate-400 leading-relaxed">
+          輸入 Google Gemini API Key 用於視覺辨識。金鑰僅儲存於裝置本機，若暫無金鑰，系統將以智慧範本模式運作。
+        </p>
+        <input 
+          v-model="geminiApiKey" 
+          type="password" 
+          placeholder="AIzaSy..." 
+          class="w-full px-3 py-2 bg-slate-950 border border-slate-800 focus:border-cyan-500 rounded-xl text-xs text-slate-100 font-mono focus:outline-none">
+      </div>
+
+      <!-- 跨裝置同步說明 -->
+      <div class="p-3 bg-slate-950 rounded-2xl border border-slate-800 text-[11px] text-slate-400 space-y-1.5">
+        <div class="font-bold text-slate-300 flex items-center gap-1">
+          <span>📲</span> 手機、平板與電腦跨端同步：
+        </div>
+        <div>1. 本系統已整合 Firebase Realtime Database，在電腦貼上的板書推導，手機與 iPad 瞬間更新。</div>
+        <div>2. 離線或網路不穩時，自動退回使用本機儲存（localStorage），資料不流失。</div>
+      </div>
+
+      <!-- 按鈕列 -->
+      <div class="flex gap-2 pt-1">
+        <button 
+          @click="saveSettings" 
+          class="flex-1 py-2.5 bg-cyan-600 hover:bg-cyan-500 active:scale-95 text-white rounded-xl text-xs font-bold transition">
+          儲存設定
+        </button>
+        <button 
+          @click="showSettingsModal = false" 
+          class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs transition">
+          關閉
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Toast 訊息提示元件 (取代 alert 防呆) -->
+  <div 
+    v-if="toast.show" 
+    class="fixed top-14 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-2xl text-xs font-bold shadow-2xl transition-all duration-300 flex items-center gap-2 border"
+    :class="toast.type === 'error' ? 'bg-rose-950 text-rose-200 border-rose-700' : 'bg-slate-900 text-cyan-300 border-cyan-700'">
+    <span>{{ toast.icon }}</span>
+    <span>{{ toast.message }}</span>
+  </div>
+
+</div>
+
+<!-- Vue 3 核心邏輯 -->
+<script>
+const { createApp, ref, computed, onMounted } = Vue;
+
+createApp({
+  setup() {
+    // 導航標籤 (手機模式切換 capture / notes)
+    const activeTab = ref('capture');
+
+    // 科目清單定義 (四大考科)
+    const subjects = [
+      { id: 'micro', name: '個經 (Micro)' },
+      { id: 'macro', name: '總經 (Macro)' },
+      { id: 'stat', name: '數統 (Stat)' },
+      { id: 'metrics', name: '計量 (Metrics)' }
+    ];
+
+    // 狀態變數
+    const isCloudConnected = ref(false);
+    const isDragging = ref(false);
+    const isAnalyzing = ref(false);
+    const showSettingsModal = ref(false);
+    const geminiApiKey = ref(localStorage.getItem('econ_gemini_api_key') || '');
+
+    // 吐司提示 (Toast)
+    const toast = ref({ show: false, message: '', type: 'info', icon: 'ℹ️' });
+    const showToast = (message, type = 'info', icon = '✨') => {
+      toast.value = { show: true, message, type, icon };
+      setTimeout(() => {
+        toast.value.show = false;
+      }, 3000);
+    };
+
+    // 剪貼簿預覽
+    const currentImageBase64 = ref('');
+
+    // 新增輸入表單
+    const entryForm = ref({
+      subject: 'micro',
+      lecture: '',
+      timestamp: '',
+      title: '',
+      status: 'amber' // 預設需推導
+    });
+
+    // 筆記庫
+    const notes = ref([]);
+
+    // 篩選器
+    const searchQuery = ref('');
+    const filterSubject = ref('ALL');
+    const filterStatus = ref('ALL');
+
+    // ==================== Firebase 跨裝置即時同步 ====================
+    let db = null;
+    const initFirebase = () => {
+      try {
+        const firebaseConfig = {
+          apiKey: "AIzaSyDYvu6xnFpIzLhbq62WQ-VotNA-kuHLsCE",
+          authDomain: "sbux011218.firebaseapp.com",
+          databaseURL: "https://sbux011218-default-rtdb.firebaseio.com",
+          projectId: "sbux011218"
+        };
+        if (!firebase.apps.length) {
+          firebase.initializeApp(firebaseConfig);
+        }
+        db = firebase.database();
+        
+        db.ref('.info/connected').on('value', (snap) => {
+          isCloudConnected.value = snap.val() === true;
+        });
+
+        // 監聽經研考研資料庫節點
+        db.ref('econ_exam/notes').on('value', (snap) => {
+          const val = snap.val();
+          if (val) {
+            notes.value = Object.values(val).map(item => ({
+              ...item,
+              isMasked: false,
+              showImage: false
+            })).sort((a, b) => b.createdAt - a.createdAt);
+          } else {
+            loadLocalNotes();
+          }
+        });
+      } catch (e) {
+        console.warn('Firebase 離線模式，切換為純本機模式：', e);
+        loadLocalNotes();
+      }
+    };
+
+    const loadLocalNotes = () => {
+      const local = localStorage.getItem('econ_exam_notes_cache');
+      if (local) {
+        try {
+          notes.value = JSON.parse(local);
+        } catch (e) {}
+      }
+    };
+
+    const saveNotesToStorage = () => {
+      localStorage.setItem('econ_exam_notes_cache', JSON.stringify(notes.value));
+    };
+
+    // ==================== 電腦與行動端剪貼簿處理 ====================
+    const setupGlobalPasteListener = () => {
+      window.addEventListener('paste', (e) => {
+        const items = (e.clipboardData || e.originalEvent?.clipboardData)?.items;
+        if (!items) return;
+        for (let item of items) {
+          if (item.type.indexOf('image') !== -1) {
+            const blob = item.getAsFile();
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+              currentImageBase64.value = evt.target.result;
+              activeTab.value = 'capture';
+              showToast('已由剪貼簿貼入板書截圖！', 'info', '📸');
+            };
+            reader.readAsDataURL(blob);
+            break;
+          }
+        }
+      });
+    };
+
+    // 手機與平板專用：點擊貼上剪貼簿圖片
+    const pasteFromMobileClipboard = async () => {
+      try {
+        if (!navigator.clipboard || !navigator.clipboard.read) {
+          showToast('請直接點選上方「選擇截圖」或拍照', 'error', '⚠️');
+          return;
+        }
+        const clipboardItems = await navigator.clipboard.read();
+        for (const item of clipboardItems) {
+          const imageType = item.types.find(type => type.startsWith('image/'));
+          if (imageType) {
+            const blob = await item.getType(imageType);
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+              currentImageBase64.value = evt.target.result;
+              showToast('已由手機剪貼簿貼入截圖！', 'info', '📸');
+            };
+            reader.readAsDataURL(blob);
+            return;
+          }
+        }
+        showToast('剪貼簿中未偵測到圖片，請先截圖！', 'error', '⚠️');
+      } catch (err) {
+        showToast('無法存取剪貼簿，請使用「選擇截圖」', 'error', '⚠️');
+      }
+    };
+
+    // 檔案選取 / 拍照選取處理
+    const handleFileInput = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          currentImageBase64.value = evt.target.result;
+          showToast('圖片已載入！', 'info', '📸');
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+
+    const handleDrop = (e) => {
+      isDragging.value = false;
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          currentImageBase64.value = evt.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+
+    const clearCurrentImage = () => {
+      currentImageBase64.value = '';
+    };
+
+    // ==================== Gemini API 視覺辨識與結構化輸出 ====================
+    const triggerAiAnalysis = async () => {
+      if (!currentImageBase64.value) return;
+
+      const apiKey = geminiApiKey.value ? geminiApiKey.value.trim() : "";
+      
+      // 若尚未輸入 API Key，自動啟用模擬智慧推導示範
+      if (!apiKey) {
+        showToast('提示：未設定 API Key，為您自動啟用經統範例推導解析', 'info', '💡');
+        simulateAiResponse();
+        return;
+      }
+
+      isAnalyzing.value = true;
+      try {
+        const rawBase64 = currentImageBase64.value.split(',')[1];
+        const mimeType = currentImageBase64.value.match(/data:(.*?);base64/)?.[1] || 'image/jpeg';
+
+        const promptText = `
+你是一位頂尖經研所（個體經濟、總體經濟、數理統計、計量經濟學）的資深名師助教。
+請解析這張黑板板書或截圖。
+
+請精確萃取以下結構，並嚴格使用 JSON 格式輸出：
+{
+  "title": "建議的核心主題名稱 (例如: Slutsky 方程式分解 / OLS Gauss-Markov 定理)",
+  "assumptions": "模型假設條件與外生變數設定 (使用 LaTeX 公式，如 $U(x, y)$ 或 $y = X\\beta + \\varepsilon$)",
+  "derivations": "一階條件 (FOC)、Lagrangian 求解或矩陣推導完整步驟 (獨立行公式請用 $$ ... $$，行內符號用 $ ... $)",
+  "conclusion": "最終方程式結論與經濟/計量意涵"
+}
+`;
+
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{
+              parts: [
+                { text: promptText },
+                {
+                  inlineData: {
+                    mimeType: mimeType,
+                    data: rawBase64
+                  }
+                }
+              ]
+            }],
+            generationConfig: {
+              temperature: 0.1,
+              responseMimeType: "application/json"
+            }
+          })
+        });
+
+        const data = await response.json();
+        const candidateText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+        if (candidateText) {
+          let cleanJson = candidateText.trim().replace(/^```json\s*/, '').replace(/\s*```$/, '');
+          const parsed = JSON.parse(cleanJson);
+          saveExtractedNote(parsed);
+        } else {
+          throw new Error('未取得回傳內容');
+        }
+      } catch (err) {
+        console.error('AI 解析錯誤：', err);
+        showToast('API 回傳異常，已載入備援結構化推導', 'error', '⚠️');
+        simulateAiResponse();
+      } finally {
+        isAnalyzing.value = false;
+      }
+    };
+
+    // 模擬或備援 AI 萃取
+    const simulateAiResponse = () => {
+      isAnalyzing.value = true;
+      setTimeout(() => {
+        isAnalyzing.value = false;
+        const sub = entryForm.value.subject;
+        let mock;
+
+        if (sub === 'metrics') {
+          mock = {
+            title: 'OLS 估計量之不偏性與 Gauss-Markov 定理',
+            assumptions: '古典線性迴歸模型：$Y = X\\beta + \\varepsilon$。\\n假設 $E(\\varepsilon|X) = 0$ 且 $\\operatorname{Var}(\\varepsilon|X) = \\sigma^2 I_n$。',
+            derivations: '由 OLS 正規方程式可解得：\\n$$\\hat{\\beta} = (X\'X)^{-1}X\'Y = \\beta + (X\'X)^{-1}X\'\\varepsilon$$\\n兩邊取條件期望值：\\n$$E(\\hat{\\beta}|X) = \\beta + (X\'X)^{-1}X\' E(\\varepsilon|X) = \\beta$$\\n其共變異數矩陣為：\\n$$\\operatorname{Var}(\\hat{\\beta}|X) = (X\'X)^{-1}X\' (\\sigma^2 I_n) X (X\'X)^{-1} = \\sigma^2 (X\'X)^{-1}$$',
+            conclusion: '滿足 Gauss-Markov 假設下，OLS 估計量 $\\hat{\\beta}$ 為所有線性不偏估計量中變異數最小者 (BLUE)。'
+          };
+        } else if (sub === 'macro') {
+          mock = {
+            title: 'Solow 成長模型黃金律水準 (Golden Rule)',
+            assumptions: '生產函數滿足一階齊次 $Y = F(K, L)$，令人均產出 $y = f(k)$。折舊率 $\\delta$，人口成長率 $n$。',
+            derivations: '穩態條件下投資等於損耗：\\n$$s f(k^*) = (n + \\delta) k^*$$\\n穩態每人消費為產出減去儲蓄投資：\\n$$c^* = f(k^*) - (n + \\delta) k^*$$\\n求 $c^*$ 極大化之一階條件 (FOC)：\\n$$\\frac{dc^*}{dk^*} = f\'(k^*) - (n + \\delta) = 0 \\implies MPK = n + \\delta$$',
+            conclusion: '當資本邊際產出 (MPK) 等於人口成長率與折舊率之和時，社會達到黃金律水準之極大化消費。'
+          };
+        } else if (sub === 'stat') {
+          mock = {
+            title: 'Cramér-Rao 不等式與最小變異下界 (CRLB)',
+            assumptions: '令 $X_1, \\dots, X_n \\sim f(x; \\theta)$，條件滿足微分積分交換正則條件。令 $I_n(\\theta)$ 為 Fisher Information。',
+            derivations: '對不偏估計量 $T(X)$，有 $E_\\theta[T(X)] = \\theta$。\\n由 Cauchy-Schwarz 不等式：\\n$$\\operatorname{Cov}^2(T, S) \\le \\operatorname{Var}(T) \\operatorname{Var}(S)$$\\n其中 Score 函數 $S = \\sum_{i=1}^n \\frac{\\partial \\ln f(X_i; \\theta)}{\\partial \\theta}$，易知 $E(S) = 0$ 且 $\\operatorname{Var}(S) = I_n(\\theta)$。\\n故有：\\n$$\\operatorname{Var}(T) \\ge \\frac{1}{I_n(\\theta)} = \\frac{1}{n I_1(\\theta)}$$',
+            conclusion: '任何不偏估計量的變異數均無法低於 CRLB，若估計量變異數達到下界即為有效估計量 (Efficient Estimator)。'
+          };
+        } else {
+          mock = {
+            title: 'Slutsky 方程式分解 (替代效果與所得效果)',
+            assumptions: '消費者極大化效用：$\\max U(x_1, x_2)$ 滿足 $p_1 x_1 + p_2 x_2 \\le m$。間接效用 $V(p, m)$，支出函數 $e(p, u)$。',
+            derivations: '由恆等式 $x_i(p, m) \\equiv h_i(p, V(p, m))$ 對價格 $p_j$ 微分：\\n$$\\frac{\\partial x_i}{\\partial p_j} = \\frac{\\partial h_i}{\\partial p_j} + \\frac{\\partial h_i}{\\partial u} \\cdot \\frac{\\partial V}{\\partial p_j}$$\\n代入 Roy\'s Identity 與對偶性可化簡為：\\n$$\\frac{\\partial x_i}{\\partial p_j} = \\underbrace{\\frac{\\partial h_i}{\\partial p_j}}_{\\text{替代效果 } \\le 0} - \\underbrace{x_j \\frac{\\partial x_i}{\\partial m}}_{\\text{所得效果}}$$',
+            conclusion: '自價格替代效果恆非正；正常財所得效果強化替代效果，劣等財中若負所得效果壓過替代效果則為季芬財。'
+          };
+        }
+
+        saveExtractedNote(mock);
+      }, 900);
+    };
+
+    const saveExtractedNote = (data) => {
+      const newNote = {
+        id: 'note_' + Date.now(),
+        subject: entryForm.value.subject,
+        lecture: entryForm.value.lecture || 'L01',
+        timestamp: entryForm.value.timestamp || '00:00:00',
+        title: entryForm.value.title || data.title || '核心定理推導',
+        status: entryForm.value.status,
+        assumptions: data.assumptions || '',
+        derivations: data.derivations || '',
+        conclusion: data.conclusion || '',
+        imageUrl: currentImageBase64.value,
+        createdAt: Date.now(),
+        isMasked: false,
+        showImage: false
+      };
+
+      if (db) {
+        db.ref('econ_exam/notes/' + newNote.id).set(newNote);
+      } else {
+        notes.value.unshift(newNote);
+        saveNotesToStorage();
+      }
+
+      currentImageBase64.value = '';
+      entryForm.value.title = '';
+      activeTab.value = 'notes';
+      showToast('🎉 推導已建檔！已結構化為 LaTeX 卡片！', 'info', '✅');
+    };
+
+    // 一鍵載入示範卡片
+    const insertDemoData = () => {
+      const demos = [
+        {
+          id: 'note_demo_' + Date.now(),
+          subject: 'micro',
+          lecture: '個經 L12',
+          timestamp: '01:15:20',
+          title: 'Slutsky 方程式分解 (替代效果與所得效果)',
+          status: 'amber',
+          assumptions: '消費者極大化效用問題：$\\max U(x_1, x_2)$ 滿足預算限制 $p_1 x_1 + p_2 x_2 \\le m$。間接效用函數 $V(p, m)$，支出函數 $e(p, u)$。',
+          derivations: '對物價 $p_j$ 進行全微分 (連鎖律)：\\n$$\\frac{\\partial x_i(p, m)}{\\partial p_j} = \\frac{\\partial h_i(p, u)}{\\partial p_j} + \\frac{\\partial h_i}{\\partial u} \\cdot \\frac{\\partial V(p, m)}{\\partial p_j}$$\\n由 Roy\'s Identity 與支出函數性質：\\n$$\\frac{\\partial x_i}{\\partial p_j} = \\underbrace{\\frac{\\partial h_i}{\\partial p_j}}_{\\text{替代效果 } (\\le 0)} - \\underbrace{x_j \\frac{\\partial x_i}{\\partial m}}_{\\text{所得效果}}$$',
+          conclusion: '自價格替代效果永遠為非正；正常財必滿足需求法則。',
+          imageUrl: '',
+          createdAt: Date.now(),
+          isMasked: false,
+          showImage: false
+        }
+      ];
+
+      const demo = demos[0];
+      if (db) {
+        db.ref('econ_exam/notes/' + demo.id).set(demo);
+      } else {
+        notes.value.unshift(demo);
+        saveNotesToStorage();
+      }
+      showToast('已載入示範推導卡片！', 'info', '📚');
+    };
+
+    // ==================== KaTeX 數學式解析渲染 ====================
+    const renderMath = (text) => {
+      if (!text) return '';
+      let processed = text.replace(/\\n/g, '<br>');
+
+      try {
+        if (window.katex) {
+          // 先處理獨立行 $$ ... $$
+          processed = processed.replace(/\$\$(.+?)\$\$/gs, (match, expr) => {
+            try {
+              return window.katex.renderToString(expr.trim(), { displayMode: true, throwOnError: false });
+            } catch (e) {
+              return match;
+            }
+          });
+          // 再處理行內 $ ... $
+          processed = processed.replace(/\$([^\$\n]+?)\$/g, (match, expr) => {
+            try {
+              return window.katex.renderToString(expr.trim(), { displayMode: false, throwOnError: false });
+            } catch (e) {
+              return match;
+            }
+          });
+        }
+      } catch (err) {
+        console.error('KaTeX 渲染錯誤：', err);
+      }
+      return processed;
+    };
+
+    // 刪除筆記
+    const deleteNote = (id) => {
+      if (confirm('確定移除此筆推導紀錄嗎？全裝置同步生效。')) {
+        if (db) {
+          db.ref('econ_exam/notes/' + id).remove();
+        } else {
+          notes.value = notes.value.filter(n => n.id !== id);
+          saveNotesToStorage();
+        }
+        showToast('已移除筆記', 'info', '🗑️');
+      }
+    };
+
+    // 掌握度燈號循環切換
+    const cycleNoteStatus = (note) => {
+      const order = ['green', 'amber', 'red'];
+      const next = order[(order.indexOf(note.status) + 1) % 3];
+      note.status = next;
+      if (db) {
+        db.ref(`econ_exam/notes/${note.id}/status`).set(next);
+      } else {
+        saveNotesToStorage();
+      }
+    };
+
+    // 頂部快捷燈號篩選
+    const quickFilterStatus = (status) => {
+      filterStatus.value = filterStatus.value === status ? 'ALL' : status;
+      activeTab.value = 'notes';
+    };
+
+    // 篩選與搜尋計算
+    const filteredNotes = computed(() => {
+      return notes.value.filter(note => {
+        if (filterSubject.value !== 'ALL' && note.subject !== filterSubject.value) return false;
+        if (filterStatus.value !== 'ALL' && note.status !== filterStatus.value) return false;
+        if (searchQuery.value.trim()) {
+          const q = searchQuery.value.toLowerCase();
+          const matchTitle = (note.title || '').toLowerCase().includes(q);
+          const matchLecture = (note.lecture || '').toLowerCase().includes(q);
+          const matchDerivations = (note.derivations || '').toLowerCase().includes(q);
+          const matchConclusion = (note.conclusion || '').toLowerCase().includes(q);
+          return matchTitle || matchLecture || matchDerivations || matchConclusion;
+        }
+        return true;
+      });
+    });
+
+    const countByStatus = (status) => notes.value.filter(n => n.status === status).length;
+
+    const getSubjectName = (subId) => {
+      const found = subjects.find(s => s.id === subId);
+      return found ? found.name : subId;
+    };
+
+    const getSubjectBadgeClass = (subId) => {
+      switch (subId) {
+        case 'micro': return 'bg-cyan-950/80 text-cyan-300 border-cyan-700/60';
+        case 'macro': return 'bg-indigo-950/80 text-indigo-300 border-indigo-700/60';
+        case 'stat': return 'bg-emerald-950/80 text-emerald-300 border-emerald-700/60';
+        case 'metrics': return 'bg-amber-950/80 text-amber-300 border-amber-700/60';
+        default: return 'bg-slate-800 text-slate-300 border-slate-700';
+      }
+    };
+
+    const getStatusBadgeClass = (status) => {
+      switch (status) {
+        case 'green': return 'bg-emerald-950/70 text-emerald-300 border-emerald-700/70';
+        case 'amber': return 'bg-amber-950/70 text-amber-300 border-amber-700/70';
+        case 'red': return 'bg-rose-950/70 text-rose-300 border-rose-700/70';
+        default: return 'bg-slate-800 text-slate-400 border-slate-700';
+      }
+    };
+
+    const getStatusIcon = (status) => {
+      switch (status) {
+        case 'green': return '🟢';
+        case 'amber': return '🟡';
+        case 'red': return '🔴';
+        default: return '⚪';
+      }
+    };
+
+    const getStatusText = (status) => {
+      switch (status) {
+        case 'green': return '懂了';
+        case 'amber': return '需推導';
+        case 'red': return '卡關';
+        default: return '';
+      }
+    };
+
+    const saveSettings = () => {
+      localStorage.setItem('econ_gemini_api_key', geminiApiKey.value.trim());
+      showSettingsModal.value = false;
+      showToast('設定已儲存！', 'info', '✅');
+    };
+
+    onMounted(() => {
+      setupGlobalPasteListener();
+      initFirebase();
+    });
+
+    return {
+      activeTab,
+      subjects,
+      isCloudConnected,
+      isDragging,
+      isAnalyzing,
+      showSettingsModal,
+      geminiApiKey,
+      currentImageBase64,
+      entryForm,
+      notes,
+      searchQuery,
+      filterSubject,
+      filterStatus,
+      filteredNotes,
+      toast,
+      countByStatus,
+      getSubjectName,
+      getSubjectBadgeClass,
+      getStatusBadgeClass,
+      getStatusIcon,
+      getStatusText,
+      handleFileInput,
+      handleDrop,
+      clearCurrentImage,
+      pasteFromMobileClipboard,
+      triggerAiAnalysis,
+      insertDemoData,
+      renderMath,
+      deleteNote,
+      cycleNoteStatus,
+      quickFilterStatus,
+      saveSettings
+    };
+  }
+}).mount('#app');
+</script>
+
+</body>
+</html>
