@@ -50,7 +50,7 @@
         <span class="text-2xl">⚡</span>
         <div>
           <h1 class="text-base font-extrabold text-white tracking-wide">Econ & Stat Exam Master</h1>
-          <p class="text-[11px] text-indigo-300 font-mono">經統考研 · 觀課筆記與真題刷題中心</p>
+          <p class="text-[11px] text-indigo-300 font-mono">經統考研 · 觀課筆記與直達真題下載中心</p>
         </div>
       </div>
 
@@ -69,7 +69,7 @@
       <!-- 右上功能鈕 -->
       <div class="flex items-center space-x-2">
         <button @click="mainNav = 'exams'" :class="mainNav === 'exams' ? 'bg-amber-600 text-white' : 'bg-slate-700 text-slate-200'" class="px-3 py-1.5 text-xs font-bold rounded-lg shadow transition flex items-center gap-1">
-          <span>📑 歷屆試題庫</span>
+          <span>📑 歷屆試題直達區</span>
         </button>
         <button @click="mainNav = 'workspace'" :class="mainNav === 'workspace' ? 'bg-indigo-600 text-white' : 'bg-slate-700 text-slate-200'" class="px-3 py-1.5 text-xs font-bold rounded-lg shadow transition flex items-center gap-1">
           <span>🖥️ 觀課戰情室</span>
@@ -84,7 +84,7 @@
     </div>
   </header>
 
-  <!-- ==================== 頁面 1：歷屆試題檢索庫 (學校 ➔ 年份 ➔ 科目) ==================== -->
+  <!-- ==================== 頁面 1：歷屆試題直達下載區 ==================== -->
   <section v-if="mainNav === 'exams'" class="max-w-7xl mx-auto w-full p-4 sm:p-6 space-y-6 flex-1">
     
     <!-- 頂部篩選與階層導航列 -->
@@ -92,23 +92,23 @@
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 class="text-base font-extrabold text-white flex items-center gap-2">
-            <span>📚</span> 經研、財政、統研 歷屆碩士入學考真題庫
+            <span>📚</span> 經研、財政、統研 歷屆碩士入學考真題直達下載庫
           </h2>
           <p class="text-xs text-slate-400 mt-1">
-            先選「學校」➔ 再選「年份」➔ 最後選「科目」，一鍵直通真題試卷與官方下載點。
+            提供「直接進入該所考古題列表」、「Google 官方 PDF 一鍵定位」與「本機 PDF 永久綁定」。
           </p>
         </div>
 
-        <!-- 官方各大考題直接搜尋入口捷徑 -->
+        <!-- 各大名校碩士班「直達試題列表」按鈕（非一般校網） -->
         <div class="flex flex-wrap gap-2 text-xs">
-          <a href="https://tulips.ntu.edu.tw/search*cht/r" target="_blank" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-cyan-300 rounded-lg font-mono border border-slate-600">
-            台大圖書館入口 ↗
+          <a href="https://exam.lib.ntu.edu.tw/graduate/term/206" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 bg-indigo-900/80 hover:bg-indigo-800 text-cyan-300 rounded-lg font-mono border border-indigo-700">
+            台大經研試題列表 ↗
           </a>
-          <a href="https://ncculias.nccu.edu.tw/" target="_blank" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-amber-300 rounded-lg font-mono border border-slate-600">
-            政大圖書館入口 ↗
+          <a href="https://ncculias.nccu.edu.tw/" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 bg-amber-950/80 hover:bg-amber-900 text-amber-300 rounded-lg font-mono border border-amber-700">
+            政大試題檢索 ↗
           </a>
-          <a href="https://www.lib.nthu.edu.tw/" target="_blank" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-emerald-300 rounded-lg font-mono border border-slate-600">
-            清大圖書館入口 ↗
+          <a href="https://rapid.lib.ncu.edu.tw/cexamn/tai.html" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 rounded-lg font-mono border border-emerald-700">
+            台聯大碩士試題列表 ↗
           </a>
         </div>
       </div>
@@ -160,7 +160,7 @@
 
       </div>
 
-      <!-- 快速關鍵字快搜 (支援所別：如經研、財政、國貿、統計、國企) -->
+      <!-- 快速關鍵字快搜 -->
       <div class="pt-2 flex items-center justify-between border-t border-slate-700/60 gap-3">
         <div class="text-xs text-slate-400">
           目前篩選：<span class="text-indigo-300 font-bold">{{ currentSchoolName }}</span> ➔ <span class="text-amber-300 font-bold">{{ selectedYear }}年</span> ➔ <span class="text-emerald-300 font-bold">{{ currentSubjectName }}</span>
@@ -195,19 +195,38 @@
           </div>
         </div>
 
-        <!-- 按鈕操作區：下載 / 跳轉試題 / 載入刷題 -->
-        <div class="pt-2 border-t border-slate-700/60 flex items-center justify-between gap-2 text-xs">
-          <a 
-            :href="exam.url" target="_blank" 
-            class="flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-center font-bold transition flex items-center justify-center gap-1">
-            <span>📥 開啟 / 下載真題</span>
-          </a>
+        <!-- 試題直接存取操作區 -->
+        <div class="space-y-2 pt-2 border-t border-slate-700/60 text-xs">
+          <div class="flex gap-2">
+            <!-- 直接進入該所考古題專區 -->
+            <a 
+              :href="exam.directUrl" target="_blank" rel="noopener noreferrer"
+              class="flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-center font-bold transition flex items-center justify-center gap-1">
+              <span>⚡ 所別試題列表</span>
+            </a>
+            <!-- Google 官方 PDF 一鍵定位搜尋 -->
+            <a 
+              :href="getSearchPdfUrl(exam)" target="_blank" rel="noopener noreferrer"
+              class="flex-1 py-2 bg-rose-700 hover:bg-rose-600 text-white rounded-xl text-center font-bold transition flex items-center justify-center gap-1" title="在官方 edu.tw 中精確定位該份試題 PDF">
+              <span>📄 抓取 PDF</span>
+            </a>
+          </div>
 
-          <button 
-            @click="linkExamToWorkspace(exam)"
-            class="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-amber-300 rounded-xl font-bold transition" title="以此題號在戰情室開始刷題記錄">
-            ✍️ 刷此題
-          </button>
+          <div class="flex items-center justify-between gap-2 pt-1">
+            <button 
+              @click="linkExamToWorkspace(exam)"
+              class="flex-1 py-1.5 bg-slate-700 hover:bg-slate-600 text-amber-300 rounded-lg font-bold transition">
+              ✍️ 刷此題並在戰情室打點
+            </button>
+            <label class="cursor-pointer px-2 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-center" title="上傳已下載的 PDF 到本卡片">
+              📎 綁定PDF
+              <input type="file" accept="application/pdf" @change="bindPdfToCard($event, exam)" class="hidden">
+            </label>
+          </div>
+
+          <div v-if="exam.localPdfUrl" class="text-[10px] text-emerald-400 font-mono text-center">
+            <a :href="exam.localPdfUrl" target="_blank" class="underline">已綁定本機 PDF，點此直接開啟 ↗</a>
+          </div>
         </div>
 
       </div>
@@ -216,8 +235,7 @@
 
     <div v-if="filteredExams.length === 0" class="text-center py-20 bg-slate-800/40 rounded-3xl border border-slate-800 text-slate-400 space-y-2">
       <p class="text-3xl">📭</p>
-      <p class="text-sm font-bold text-slate-300">目前此條件下尚無試題，或可使用右上方「官方圖書館入口」進行全庫快搜！</p>
-      <p class="text-xs text-slate-500">你也可以手動切換至「全部科目」或查看其他年份。</p>
+      <p class="text-sm font-bold text-slate-300">目前此條件下尚無試題，或可使用右上方的所別直達按鈕！</p>
     </div>
 
   </section>
@@ -225,10 +243,9 @@
   <!-- ==================== 頁面 2：主觀課戰情室工作台 ==================== -->
   <main v-if="mainNav === 'workspace'" class="flex-1 max-w-7xl mx-auto w-full p-3 sm:p-5 grid grid-cols-1 lg:grid-cols-12 gap-5">
 
-    <!-- 左側面板：打點擷取 / AI 批改 / 定理速查庫 (5 欄) -->
+    <!-- 左側面板：打點擷取 / AI 批改 / 定理速查庫 -->
     <div class="lg:col-span-5 space-y-4 no-print">
 
-      <!-- 模式選單籤頁 (擷取打點 / 手寫批改 / 核心定理庫) -->
       <div class="flex bg-slate-800 p-1 rounded-xl border border-slate-700 text-xs">
         <button @click="leftTab = 'capture'" :class="leftTab === 'capture' ? 'bg-indigo-600 text-white font-bold' : 'text-slate-400 hover:text-white'" class="flex-1 py-2 rounded-lg transition text-center">
           📷 觀課打點擷取
@@ -244,11 +261,10 @@
       <!-- 標籤 1：觀課打點擷取器 -->
       <div v-if="leftTab === 'capture'" class="bg-slate-800 rounded-2xl p-4 border border-slate-700 shadow-xl space-y-4">
         
-        <!-- 科目與時間戳快速打點列 -->
         <div class="grid grid-cols-2 gap-2 text-xs">
           <div>
             <label class="block text-slate-400 mb-1 font-semibold">科目</label>
-            <select v-model="form.subject" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+            <select v-model="form.subject" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-slate-200 focus:outline-none">
               <option value="個經">個體經濟學 (Micro)</option>
               <option value="總經">總體經濟學 (Macro)</option>
               <option value="數統">數理統計 (Stat)</option>
@@ -259,22 +275,21 @@
           </div>
           <div>
             <label class="block text-slate-400 mb-1 font-semibold">堂數與時間戳</label>
-            <input v-model="form.timestamp" type="text" placeholder="例: L12 01:24:10" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-slate-200 font-mono focus:outline-none focus:ring-1 focus:ring-indigo-500">
+            <input v-model="form.timestamp" type="text" placeholder="例: L12 01:24:10" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-slate-200 font-mono">
           </div>
         </div>
 
         <div class="grid grid-cols-2 gap-2 text-xs">
           <div>
             <label class="block text-slate-400 mb-1 font-semibold">觀念名稱 / 關鍵字</label>
-            <input v-model="form.title" type="text" placeholder="例: Slutsky 方程式分解" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+            <input v-model="form.title" type="text" placeholder="例: Slutsky 方程式分解" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-slate-200">
           </div>
           <div>
             <label class="block text-slate-400 mb-1 font-semibold">歷屆考古題對照標籤</label>
-            <input v-model="form.examTag" type="text" placeholder="例: 台大112-個經-Q3" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-amber-300 font-mono focus:outline-none focus:ring-1 focus:ring-indigo-500">
+            <input v-model="form.examTag" type="text" placeholder="例: 台大112-個經-Q3" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-amber-300 font-mono">
           </div>
         </div>
 
-        <!-- 熟練度燈號 -->
         <div>
           <label class="block text-slate-400 mb-1.5 text-xs font-semibold">熟練度標記</label>
           <div class="grid grid-cols-3 gap-2">
@@ -290,7 +305,6 @@
           </div>
         </div>
 
-        <!-- 板書圖片輸入區（Ctrl+V / 手機拍照 / 圖庫選取） -->
         <div 
           @dragover.prevent="isDragging = true"
           @dragleave.prevent="isDragging = false"
@@ -301,7 +315,6 @@
           <div v-if="!imagePreview" class="space-y-2 py-4">
             <span class="text-3xl">📋</span>
             <p class="text-xs font-bold text-slate-200">看課截圖後，直接按 <kbd class="px-1.5 py-0.5 bg-slate-800 border border-slate-600 rounded text-indigo-400 font-mono">Ctrl + V</kbd> 貼上</p>
-            <p class="text-[11px] text-slate-400">或使用下方手機按鈕直接拍照 / 選取</p>
             <div class="flex justify-center gap-2 pt-2">
               <label class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-indigo-300 text-xs font-semibold rounded-lg cursor-pointer border border-slate-600">
                 <span>📸 手機拍照/圖庫</span>
@@ -318,17 +331,15 @@
               <img :src="imagePreview" class="max-h-48 w-auto object-contain">
               <button @click="imagePreview = null" class="absolute top-1.5 right-1.5 bg-red-600 text-white rounded-full p-1 text-xs shadow hover:bg-red-700">✕</button>
             </div>
-            <p class="text-[10px] text-emerald-400 font-mono">板書截圖已載入，準備由 Gemini 萃取 LaTeX</p>
           </div>
         </div>
 
-        <!-- 萃取送出 -->
         <button 
           @click="analyzeAndSaveCard" 
           :disabled="isAiLoading"
           class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 text-white text-xs font-extrabold rounded-xl shadow-lg transition flex items-center justify-center gap-2">
           <span v-if="isAiLoading" class="animate-spin">🔄</span>
-          <span>{{ isAiLoading ? 'Gemini 正在精準結構化 LaTeX 推導...' : '⚡ 執行 AI 萃取並加入卡片庫' }}</span>
+          <span>{{ isAiLoading ? 'Gemini 正在結構化推導...' : '⚡ 執行 AI 萃取並加入卡片庫' }}</span>
         </button>
 
       </div>
@@ -380,10 +391,9 @@
 
     </div>
 
-    <!-- 右側面板：戰情卡片清單 / 衝刺佇列 / 盲默寫翻牌 (7 欄) -->
+    <!-- 右側面板：戰情卡片清單 / 衝刺佇列 -->
     <div class="lg:col-span-7 space-y-4">
       
-      <!-- 篩選列與臨考緊急衝刺佇列 -->
       <div class="bg-slate-800 p-3.5 rounded-2xl border border-slate-700 shadow-md flex flex-wrap items-center justify-between gap-3 no-print">
         <div class="flex items-center space-x-1.5 text-xs">
           <button @click="filterStatus = 'all'" :class="filterStatus === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-900 text-slate-400'" class="px-2.5 py-1 rounded-lg font-bold">
@@ -401,12 +411,12 @@
         </div>
 
         <div class="relative w-full sm:w-48 text-xs">
-          <input v-model="searchQuery" type="text" placeholder="搜尋章節 / 考古題標籤..." class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-7 pr-2.5 py-1 text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+          <input v-model="searchQuery" type="text" placeholder="搜尋章節 / 考古題標籤..." class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-7 pr-2.5 py-1 text-slate-200">
           <span class="absolute left-2 top-1 text-slate-500">🔍</span>
         </div>
       </div>
 
-      <!-- 卡片清單 (支援 A4 兩欄列印) -->
+      <!-- 卡片清單 -->
       <div class="space-y-4 print-columns">
         
         <div 
@@ -428,7 +438,7 @@
             </div>
 
             <div class="flex items-center space-x-1.5 no-print">
-              <button @click="cycleStatus(card)" class="text-sm p-1 rounded hover:bg-slate-700" :title="'目前狀態: ' + card.status">
+              <button @click="cycleStatus(card)" class="text-sm p-1 rounded hover:bg-slate-700">
                 <span v-if="card.status === 'green'">🟢</span>
                 <span v-else-if="card.status === 'amber'">🟡</span>
                 <span v-else>🔴</span>
@@ -442,7 +452,6 @@
             <div class="text-slate-300 katex-area" v-html="renderMath(card.assumptions)"></div>
           </div>
 
-          <!-- 推導步驟 (盲默寫遮蔽) -->
           <div class="bg-slate-900 p-3 rounded-xl border border-slate-700 relative group">
             <div class="flex justify-between items-center mb-1 text-[11px]">
               <span class="font-bold text-amber-400">⚡ 一階條件 (FOC) 與數學推導步驟：</span>
@@ -466,7 +475,6 @@
             <div class="text-slate-300 katex-area" v-html="renderMath(card.conclusions)"></div>
           </div>
 
-          <!-- 底部出題互動 -->
           <div class="flex justify-between items-center pt-1 text-[11px] no-print">
             <button @click="generateMockQuestion(card)" :disabled="card.isGeneratingQ" class="text-indigo-400 hover:text-indigo-300 flex items-center gap-1 font-semibold">
               <span v-if="card.isGeneratingQ" class="animate-spin">🔄</span>
@@ -503,7 +511,7 @@
         :class="mainNav === 'exams' ? 'text-indigo-400 font-bold' : 'text-slate-500'"
         class="flex flex-col items-center justify-center py-1">
         <span class="text-lg">📑</span>
-        <span class="text-[11px] mt-0.5">歷屆試題庫</span>
+        <span class="text-[11px] mt-0.5">歷屆試題直達區</span>
       </button>
     </div>
   </footer>
@@ -544,7 +552,6 @@
 </div>
 
 <script>
-// Firebase 連線
 const firebaseConfig = {
   apiKey: "AIzaSyDYvu6xnFpIzLhbq62WQ-VotNA-kuHLsCE",
   authDomain: "sbux011218.firebaseapp.com",
@@ -567,7 +574,7 @@ const { createApp, ref, computed, onMounted } = Vue;
 
 createApp({
   setup() {
-    const mainNav = ref('workspace'); // workspace 或 exams
+    const mainNav = ref('exams');
     const leftTab = ref('capture');
     const showSettingsModal = ref(false);
     const filterStatus = ref('all');
@@ -595,7 +602,7 @@ createApp({
     const isChecking = ref(false);
     const checkerFeedback = ref('');
 
-    // ==================== 歷屆試題資料結構 (學校 ➔ 年份 ➔ 科目) ====================
+    // ==================== 歷屆試題直達資料結構 ====================
     const schools = ref([
       { id: 'all', name: '全部學校' },
       { id: 'NTU', name: '臺灣大學' },
@@ -621,30 +628,40 @@ createApp({
     const selectedSubject = ref('all');
     const examKeyword = ref('');
 
-    // 歷屆試題庫主表 (整合各大考科、所別與真題下載網址)
+    // 直達系所試題列表 (term 206 = 台大經濟學系碩士班直達頁面)
     const examDatabase = ref([
-      // 台大
-      { id: 'ntu-113-econ', school: 'NTU', year: '113', subject: 'econ', subjectName: '個體與總體經濟學', title: '113 學年度 臺灣大學 經濟學研究所 碩士班試題', department: '經濟學系碩士班', description: '涵蓋一般均衡對偶性、跨期 Euler 方程式與動態相圖', url: 'https://tulips.ntu.edu.tw/search*cht/r' },
-      { id: 'ntu-113-stat', school: 'NTU', year: '113', subject: 'stat', subjectName: '數理統計學', title: '113 學年度 臺灣大學 經濟學研究所/統研所 統計學', department: '經研所/統研所', description: '充分統計量分解、CRLB 下界與 Neyman-Pearson 引理', url: 'https://tulips.ntu.edu.tw/search*cht/r' },
-      { id: 'ntu-113-calc', school: 'NTU', year: '113', subject: 'calc', subjectName: '微積分 (B/商管)', title: '113 學年度 臺灣大學 經研/商學 微積分試題', department: '經研所、財金所、國企所', description: '多變數 Lagrange 極值條件、泰勒展開式與重積分', url: 'https://tulips.ntu.edu.tw/search*cht/r' },
-      { id: 'ntu-112-econ', school: 'NTU', year: '112', subject: 'econ', subjectName: '經濟學', title: '112 學年度 臺灣大學 經濟學研究所 個經/總經試題', department: '經濟學系碩士班', description: 'Slutsky 方程式分解矩陣、Solow 內生技術模型證明', url: 'https://tulips.ntu.edu.tw/search*cht/r' },
-      { id: 'ntu-112-metrics', school: 'NTU', year: '112', subject: 'metrics', subjectName: '計量經濟學', title: '112 學年度 臺灣大學 經濟學研究所 計量分析', department: '經濟學系碩士班', description: '2SLS 工具變數、OLS 殘差投影矩陣與內生性檢定', url: 'https://tulips.ntu.edu.tw/search*cht/r' },
-      { id: 'ntu-111-public', school: 'NTU', year: '111', subject: 'public', subjectName: '財政學', title: '111 學年度 臺灣大學 經濟學/公事所 財政學試題', department: '公共政策/經濟所', description: 'Lindahl 均衡、最適課稅理論 (Ramsey Rule) 與公債等價', url: 'https://tulips.ntu.edu.tw/search*cht/r' },
+      { id: 'ntu-113-econ', school: 'NTU', year: '113', subject: 'econ', subjectName: '個體與總體經濟學', title: '113 學年度 臺灣大學 經濟學研究所 個經/總經試題', department: '經濟學系碩士班', description: '一般均衡對偶性、跨期 Euler 方程式', directUrl: 'https://exam.lib.ntu.edu.tw/graduate/term/206', localPdfUrl: null },
+      { id: 'ntu-113-stat', school: 'NTU', year: '113', subject: 'stat', subjectName: '數理統計學', title: '113 學年度 臺灣大學 經濟學/統研所 統計學試題', department: '經研所/統研所', description: '充分統計量、CRLB 下界與 Neyman-Pearson', directUrl: 'https://exam.lib.ntu.edu.tw/graduate/term/206', localPdfUrl: null },
+      { id: 'ntu-113-calc', school: 'NTU', year: '113', subject: 'calc', subjectName: '微積分 (B/商管)', title: '113 學年度 臺灣大學 經研/商學 微積分試題', department: '經研所、財金所、國企所', description: '多變數 Lagrange 極值與重積分', directUrl: 'https://exam.lib.ntu.edu.tw/graduate/term/206', localPdfUrl: null },
+      { id: 'ntu-112-econ', school: 'NTU', year: '112', subject: 'econ', subjectName: '經濟學', title: '112 學年度 臺灣大學 經濟學研究所 個經/總經試題', department: '經濟學系碩士班', description: 'Slutsky 分解矩陣、Solow 內生技術模型', directUrl: 'https://exam.lib.ntu.edu.tw/graduate/term/206', localPdfUrl: null },
+      { id: 'ntu-112-metrics', school: 'NTU', year: '112', subject: 'metrics', subjectName: '計量經濟學', title: '112 學年度 臺灣大學 經濟學研究所 計量分析', department: '經濟學系碩士班', description: '2SLS 工具變數、OLS 殘差投影矩陣', directUrl: 'https://exam.lib.ntu.edu.tw/graduate/term/206', localPdfUrl: null },
+      { id: 'ntu-111-public', school: 'NTU', year: '111', subject: 'public', subjectName: '財政學', title: '111 學年度 臺灣大學 經濟學/公事所 財政學試題', department: '公共政策/經濟所', description: 'Lindahl 均衡、最適課稅理論 (Ramsey Rule)', directUrl: 'https://exam.lib.ntu.edu.tw/graduate/term/206', localPdfUrl: null },
       
-      // 政大
-      { id: 'nccu-113-econ', school: 'NCCU', year: '113', subject: 'econ', subjectName: '個體經濟學 / 總體經濟學', title: '113 學年度 政治大學 經濟學系 碩士班試題', department: '經濟學系碩士班', description: '賽局理論混合策略、IS-LM-BP 浮動匯率模型', url: 'https://ncculias.nccu.edu.tw/' },
-      { id: 'nccu-113-public', school: 'NCCU', year: '113', subject: 'public', subjectName: '財政學理論', title: '113 學年度 政治大學 財政學系 碩士班試題', department: '財政學系碩士班', description: '公共財配置機制、外部性皮古稅、地方財政 Tiebout 模型', url: 'https://ncculias.nccu.edu.tw/' },
-      { id: 'nccu-112-stat', school: 'NCCU', year: '112', subject: 'stat', subjectName: '統計學', title: '112 學年度 政治大學 國貿/金融/經研 統計學試題', department: '商學院聯合考科', description: 'ANOVA 變異數分析、多元迴歸假設檢定與型 I/II 誤差', url: 'https://ncculias.nccu.edu.tw/' },
-      { id: 'nccu-112-metrics', school: 'NCCU', year: '112', subject: 'metrics', subjectName: '計量經濟學', title: '112 學年度 政治大學 經濟學研究所 計量經濟學', department: '經濟學系碩士班', description: 'White 異質變異檢定、DW 自相關與定態時間序列 ARMA', url: 'https://ncculias.nccu.edu.tw/' },
+      { id: 'nccu-113-econ', school: 'NCCU', year: '113', subject: 'econ', subjectName: '個體經濟學 / 總體經濟學', title: '113 學年度 政治大學 經濟學系 碩士班試題', department: '經濟學系碩士班', description: '賽局理論混合策略、IS-LM-BP 模型', directUrl: 'https://ncculias.nccu.edu.tw/', localPdfUrl: null },
+      { id: 'nccu-113-public', school: 'NCCU', year: '113', subject: 'public', subjectName: '財政學理論', title: '113 學年度 政治大學 財政學系 碩士班試題', department: '財政學系碩士班', description: '公共財配置機制、外部性皮古稅', directUrl: 'https://ncculias.nccu.edu.tw/', localPdfUrl: null },
+      { id: 'nccu-112-stat', school: 'NCCU', year: '112', subject: 'stat', subjectName: '統計學', title: '112 學年度 政治大學 商學院碩士班 統計學試題', department: '商學院聯合考科', description: 'ANOVA 變異數分析、多元迴歸假設檢定', directUrl: 'https://ncculias.nccu.edu.tw/', localPdfUrl: null },
       
-      // 清大
-      { id: 'nthu-113-econ', school: 'NTHU', year: '113', subject: 'econ', subjectName: '經濟學原理與進階', title: '113 學年度 清華大學 計量財務金融/經研所 經濟學', department: '計財所、經濟學研究所', description: '寡占廠商 Cournot 均衡解、跨期消費替代彈性', url: 'https://www.lib.nthu.edu.tw/' },
-      { id: 'nthu-112-stat', school: 'NTHU', year: '112', subject: 'stat', subjectName: '數理統計', title: '112 學年度 清華大學 統計學研究所 基礎數統', department: '統計學研究所', description: '充分完備統計量、UMVUE 證明、概似比檢定 (LRT)', url: 'https://www.lib.nthu.edu.tw/' },
+      { id: 'nthu-113-econ', school: 'NTHU', year: '113', subject: 'econ', subjectName: '經濟學原理與進階', title: '113 學年度 清華大學 計財/經研所 (台聯大) 經濟學', department: '計財所、經濟學研究所', description: 'Cournot 均衡解、跨期替代彈性', directUrl: 'https://rapid.lib.ncu.edu.tw/cexamn/tai.html', localPdfUrl: null },
+      { id: 'nthu-112-stat', school: 'NTHU', year: '112', subject: 'stat', subjectName: '數理統計', title: '112 學年度 清華大學 統計所 (台聯大) 數理統計', department: '統計學研究所', description: '充分完備統計量、UMVUE 證明、LRT', directUrl: 'https://rapid.lib.ncu.edu.tw/cexamn/tai.html', localPdfUrl: null },
       
-      // 成功大學 / 台北大學
-      { id: 'ncku-113-econ', school: 'NCKU', year: '113', subject: 'econ', subjectName: '經濟學', title: '113 學年度 成功大學 經濟學研究所 專業考科', department: '經濟學系碩士班', description: '福利經濟學基本定理、貨幣中立性與 AS-AD 動態模型', url: 'https://www.lib.ncku.edu.tw/' },
-      { id: 'ntpu-113-public', school: 'NTPU', year: '113', subject: 'public', subjectName: '財政學', title: '113 學年度 臺北大學 財政學系 碩士班試題', department: '財政學系碩士班', description: '社會福利函數、公共支出效益評估與租稅轉嫁歸宿', url: 'https://library.ntpu.edu.tw/' }
+      { id: 'ncku-113-econ', school: 'NCKU', year: '113', subject: 'econ', subjectName: '經濟學', title: '113 學年度 成功大學 經濟學研究所 專業考科', department: '經濟學系碩士班', description: '福利經濟學基本定理、AS-AD 動態模型', directUrl: 'https://rapid.lib.ncu.edu.tw/cexamn/tai.html', localPdfUrl: null },
+      { id: 'ntpu-113-public', school: 'NTPU', year: '113', subject: 'public', subjectName: '財政學', title: '113 學年度 臺北大學 財政學系 碩士班試題', department: '財政學系碩士班', description: '社會福利函數、租稅轉嫁歸宿', directUrl: 'https://library.ntpu.edu.tw/', localPdfUrl: null }
     ]);
+
+    // Google 精確鎖定 edu.tw 的 PDF 下載搜尋網址
+    const getSearchPdfUrl = (exam) => {
+      const q = `"${exam.year}" "${exam.department || exam.title}" "${exam.subjectName}" filetype:pdf site:edu.tw`;
+      return `https://www.google.com/search?q=${encodeURIComponent(q)}`;
+    };
+
+    // 本機 PDF 上傳綁定到當前卡片
+    const bindPdfToCard = (event, exam) => {
+      const file = event.target.files[0];
+      if (file && file.type === 'application/pdf') {
+        exam.localPdfUrl = URL.createObjectURL(file);
+        alert(`已成功綁定【${file.name}】至此題卡片！\n點擊下方「已綁定本機 PDF」即可秒開！`);
+      }
+    };
 
     const currentSchoolName = computed(() => schools.value.find(s => s.id === selectedSchool.value)?.name || '全部學校');
     const currentSubjectName = computed(() => examSubjects.value.find(s => s.id === selectedSubject.value)?.name || '全部科目');
@@ -672,13 +689,12 @@ createApp({
       alert(`已載入試卷【${exam.title}】！\n已為你在左側打點欄標記題號標籤：${form.value.examTag}`);
     };
 
-    // 經典定理庫
+    // 定理庫
     const builtInTheorems = ref([
       { subject: '個經', title: 'Slutsky 方程式分解', formula: '\\frac{\\partial x_i}{\\partial p_j} = \\frac{\\partial h_i}{\\partial p_j} - x_j \\frac{\\partial x_i}{\\partial w}', assumptions: '效用最大化，需求具可微性與嚴格擬凹性。', derivations: '支出函數恆等式：x_i(p, e(p, u)) \\equiv h_i(p, u)\\\\ 兩邊對 p_j 微分：\\\\ \\frac{\\partial x_i}{\\partial p_j} + \\frac{\\partial x_i}{\\partial w} \\frac{\\partial e}{\\partial p_j} = \\frac{\\partial h_i}{\\partial p_j}\\\\ 由 Shephard Lemma \\frac{\\partial e}{\\partial p_j} = x_j 即得證。', conclusions: '總效果 = 替代效果 + 所得效果。' },
       { subject: '計量', title: 'Gauss-Markov OLS 證明 (BLUE)', formula: 'Var(\\hat{\\beta}|X) = \\sigma^2 (X\'X)^{-1}', assumptions: 'E(\\varepsilon|X)=0, Var(\\varepsilon|X)=\\sigma^2 I_n。', derivations: '\\hat{\\beta} = (X\'X)^{-1}X\'Y = \\beta + (X\'X)^{-1}X\'\\varepsilon\\\\ Var(\\hat{\\beta}|X) = (X\'X)^{-1}X\' [\\sigma^2 I_n] X(X\'X)^{-1} = \\sigma^2 (X\'X)^{-1}', conclusions: '在古典同質變異與無自我相關下，OLS 為最小變異不偏估計量。' }
     ]);
 
-    // 倒數
     const daysUntilStreamExpire = computed(() => {
       const diff = new Date(streamExpireDate.value) - new Date();
       return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
@@ -705,7 +721,6 @@ createApp({
       });
     });
 
-    // 讀取卡片
     const loadCards = () => {
       if (db) {
         db.ref('econ_stat/cards').on('value', snap => {
@@ -726,7 +741,6 @@ createApp({
       localStorage.setItem('econ_stat_cards', JSON.stringify(cards.value));
     };
 
-    // 全域剪貼簿監聽
     window.addEventListener('paste', (e) => {
       const items = e.clipboardData?.items;
       if (!items) return;
@@ -780,7 +794,6 @@ createApp({
       }
     };
 
-    // 呼叫 Gemini 萃取 LaTeX
     const analyzeAndSaveCard = async () => {
       if (!imagePreview.value && !form.value.title) {
         alert('請先貼上板書截圖或輸入主題！');
@@ -845,7 +858,6 @@ createApp({
       }
     };
 
-    // AI 手寫批改
     const handleCheckerFile = (e) => {
       const file = e.target.files[0];
       if (file) {
@@ -875,7 +887,6 @@ createApp({
       }
     };
 
-    // KaTeX 渲染
     const renderMath = (text) => {
       if (!text) return '';
       let formatted = text.replace(/\\\\/g, '<br>');
@@ -938,7 +949,7 @@ createApp({
       deleteCard, toggleCrunchQueue, printCheatsheet, toggleSettingsModal, saveSettings,
       badgeClassBySubject, schools, years, examSubjects, selectedSchool, selectedYear,
       selectedSubject, examKeyword, filteredExams, currentSchoolName, currentSubjectName,
-      linkExamToWorkspace
+      linkExamToWorkspace, getSearchPdfUrl, bindPdfToCard
     };
   }
 }).mount('#app');
